@@ -1,6 +1,7 @@
 class TagManager {
-  constructor(id) {
+  constructor(id, user_email_address) {
     this.id = id;
+    this.user_email_address = user_email_address;
   }
 
   isTagManagerRegistered() {
@@ -33,34 +34,36 @@ class TagManager {
         dataLayer.push(arguments);
       }
 
-      window.addEventListener("message", function(event) {
-          if (event.data.source === "streamlit-ga") {
-            gtag("event", event.data.eventName, event.data.eventData)
-          }
-        }
-      )
+      // window.addEventListener("message", function(event) {
+      //     if (event.data.source === "streamlit-ga") {
+      //       gtag("event", event.data.eventName, event.data.eventData)
+      //     }
+      //   }
+      // )
 
       gtag("js", new Date());
-      gtag("config", '${this.id}');
+      gtag("config", '${this.id}', {
+        "user_id": '${this.user_email_address}'
+      });
 
     `;
     window.parent.document.head.insertBefore(gtag, ga.nextSibling);
   }
 
-  sendEvent(eventName, params) {
-    window.parent.postMessage({
-      source: "streamlit-ga",
-      eventName: eventName,
-      eventData: params,
-    });
-  }
+  // sendEvent(eventName, params) {
+  //   window.parent.postMessage({
+  //     source: "streamlit-ga",
+  //     eventName: eventName,
+  //     eventData: params,
+  //   });
+  // }
 }
 
 async function onRender(event) {
   const props = event.detail.args;
-  const tagManager = new TagManager(props.id);
+  const tagManager = new TagManager(props.id, props.user_email_address);
   await tagManager.setup();
-  await tagManager.sendEvent(props.event_name, props.params);
+  // await tagManager.sendEvent(props.event_name, props.params);
 }
 
 Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
